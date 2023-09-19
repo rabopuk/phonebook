@@ -89,8 +89,8 @@ const data = [
     thead.insertAdjacentHTML('beforeend', `
       <tr>
         <th class="delete">Удалить</th>
-        <th>Имя</th>
-        <th>Фамилия</th>
+        <th class="th-name">Имя</th>
+        <th class="th-surname">Фамилия</th>
         <th>Телефон</th>
       </tr>
     `);
@@ -99,6 +99,7 @@ const data = [
 
     table.append(thead, tbody);
     table.tbody = tbody;
+    table.thead = thead;
 
     return table;
   };
@@ -169,7 +170,6 @@ const data = [
     const tr = document.createElement('tr');
     tr.classList.add('contact');
 
-    // TODO:
     // Добавить в каждую строку кнопку редактировать (на кнопке текст или иконка на ваше усмотрение)
     const tdEdit = document.createElement('td');
     const buttonEdit = document.createElement('button');
@@ -227,6 +227,7 @@ const data = [
 
     return {
       list: table.tbody,
+      thead: table.thead,
       logo,
       btnAdd: buttonGroup.btns[0],
       btnDel: buttonGroup.btns[1],
@@ -264,6 +265,7 @@ const data = [
       btnAdd,
       btnDel,
       formOverlay,
+      thead,
       // form,
     } = phoneBook;
 
@@ -274,11 +276,6 @@ const data = [
     btnAdd.addEventListener('click', () => {
       formOverlay.classList.add('is-visible');
     });
-
-    // form.addEventListener('click', event => {
-    //   // Прерывание всплытия
-    //   event.stopPropagation();
-    // });
 
     formOverlay.addEventListener('click', e => {
       const target = e.target;
@@ -302,15 +299,48 @@ const data = [
       }
     });
 
-    // setTimeout(() => {
-    //   const contact = createRow({
-    //     name: 'Ивфван',
-    //     surname: 'Кекук',
-    //     phone: '+79516245454',
-    //   });
+    // Переменная для отслеживания текущего порядка сортировки
+    let sortOrder = 'asc';
 
-    //   list.append(contact);
-    // }, 1000);
+    // Функция для обновления таблицы с учетом отсортированных данных
+    const updateTable = () => {
+      // Очистить текущие строки таблицы
+      list.innerHTML = '';
+
+      // Перерисовать таблицу с отсортированными данными
+      renderContacts(list, data);
+    };
+
+    thead.addEventListener('click', e => {
+      const target = e.target;
+
+      if (target.closest('.th-name')) {
+        // Клик на заголовок Имя
+        if (sortOrder === 'asc') {
+          // Сортировка по возрастанию
+          data.sort((a, b) => a.name.localeCompare(b.name));
+          sortOrder = 'desc'; // порядок сортировки на убывание
+        } else {
+          // Сортировка по убыванию
+          data.sort((a, b) => b.name.localeCompare(a.name));
+          sortOrder = 'asc'; // порядок сортировки на возрастание
+        }
+      }
+
+      if (target.closest('.th-surname')) {
+        // Клик на заголовок Фамилия
+        if (sortOrder === 'asc') {
+          data.sort((a, b) => a.surname.localeCompare(b.surname));
+          sortOrder = 'desc';
+        } else {
+          data.sort((a, b) => b.surname.localeCompare(a.surname));
+          sortOrder = 'asc';
+        }
+      }
+
+      // Обновить таблицу с учетом отсортированных данных
+      updateTable();
+    });
   };
 
   window.phoneBookInit = init;
