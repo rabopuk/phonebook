@@ -151,8 +151,7 @@ const data = [
     };
   };
 
-  // TODO:
-  const createFooter = () => {
+  const createFooter = title => {
     const footer = document.createElement('footer');
     footer.classList.add('footer');
 
@@ -160,7 +159,7 @@ const data = [
     footer.append(footerContainer);
 
     footer.footerContainer = footerContainer;
-    footer.footerContainer.textContent = 'hello';
+    footer.footerContainer.textContent = `Hello, ${title}!`;
 
     return footer;
   };
@@ -180,7 +179,7 @@ const data = [
     const phoneLink = document.createElement('a');
     phoneLink.href = `tel:${phone}`;
     phoneLink.textContent = phone;
-
+    tr.phoneLink = phoneLink;
     tdPhone.append(phoneLink);
     tr.append(tdDel, tdName, tdSurname, tdPhone);
 
@@ -205,7 +204,7 @@ const data = [
     ]);
     const table = createTable();
     const form = createForm();
-    const footer = createFooter();
+    const footer = createFooter(title);
 
     header.headerContainer.append(logo);
     main.mainContainer.append(buttonGroup.btnWrapper, table, form.overlay);
@@ -213,21 +212,48 @@ const data = [
 
     return {
       list: table.tbody,
+      logo,
+      btnAdd: buttonGroup.btns[0],
+      formOverlay: form.overlay,
     };
   };
 
   const renderContacts = (elem, data) => {
     const allRows = data.map(createRow);
     elem.append(...allRows);
+    return allRows;
+  };
+
+  const hoverRow = (contacts, logo) => {
+    const text = logo.textContent;
+
+    contacts.forEach(contact => {
+      contact.addEventListener('mouseenter', () => {
+        logo.textContent = contact.phoneLink.textContent;
+      });
+      contact.addEventListener('mouseleave', () => {
+        logo.textContent = text;
+      });
+    });
   };
 
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
-    console.log('phoneBook: ', phoneBook);
-    const { list } = phoneBook;
-    renderContacts(list, data);
+
+    const { list, logo, btnAdd, formOverlay } = phoneBook;
+
     // Функионал
+    const allRows = renderContacts(list, data);
+    hoverRow(allRows, logo);
+
+    const objEvent = {
+      handleEvent() {
+        formOverlay.classList.add('is-visible');
+      },
+    };
+
+    btnAdd.addEventListener('click', objEvent);
   };
 
   window.phoneBookInit = init;
