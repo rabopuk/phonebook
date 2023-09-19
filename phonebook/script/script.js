@@ -167,14 +167,15 @@ const data = [
 
   const createRow = ({ name: firstName, surname, phone }) => {
     const tr = document.createElement('tr');
+    tr.classList.add('contact');
 
     // TODO:
     // Добавить в каждую строку кнопку редактировать (на кнопке текст или иконка на ваше усмотрение)
     const tdEdit = document.createElement('td');
     const buttonEdit = document.createElement('button');
-    buttonEdit.classList.add('edit-icon');
+    buttonEdit.classList.add('btn', 'btn-primary');
     buttonEdit.textContent = 'Редактировать';
-    buttonEdit.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M11.293 1.293a1 1 0 0 1 1.414 1.414L3.586 12H2v-1.586l9.707-9.707a1 1 0 0 1 1.414 0z" /><path fill-rule="evenodd" d="M12.293.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1-.39.242l-3 1a1 1 0 0 1-1.266-1.267l1-3a1 1 0 0 1 .242-.39l10-10z" /></svg> Редактировать';
+    buttonEdit.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M11.293 1.293a1 1 0 0 1 1.414 1.414L3.586 12H2v-1.586l9.707-9.707a1 1 0 0 1 1.414 0z" /><path fill-rule="evenodd" d="M12.293.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1-.39.242l-3 1a1 1 0 0 1-1.266-1.267l1-3a1 1 0 0 1 .242-.39l10-10z" /></svg>';
     tdEdit.appendChild(buttonEdit);
 
     const tdDel = document.createElement('td');
@@ -228,6 +229,7 @@ const data = [
       list: table.tbody,
       logo,
       btnAdd: buttonGroup.btns[0],
+      btnDel: buttonGroup.btns[1],
       formOverlay: form.overlay,
       form: form.form,
     };
@@ -256,9 +258,16 @@ const data = [
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
 
-    const { list, logo, btnAdd, formOverlay, form } = phoneBook;
+    const {
+      list,
+      logo,
+      btnAdd,
+      btnDel,
+      formOverlay,
+      // form,
+    } = phoneBook;
 
-    // Функионал
+    // Функционал
     const allRows = renderContacts(list, data);
     hoverRow(allRows, logo);
 
@@ -266,14 +275,42 @@ const data = [
       formOverlay.classList.add('is-visible');
     });
 
-    form.addEventListener('click', event => {
-      // Прерывание всплытия
-      event.stopPropagation();
+    // form.addEventListener('click', event => {
+    //   // Прерывание всплытия
+    //   event.stopPropagation();
+    // });
+
+    formOverlay.addEventListener('click', e => {
+      const target = e.target;
+
+      if (target === formOverlay || target.closest('.close')) {
+        formOverlay.classList.remove('is-visible');
+      }
     });
 
-    formOverlay.addEventListener('click', () => {
-      formOverlay.classList.remove('is-visible');
+    btnDel.addEventListener('click', () => {
+      document.querySelectorAll('.delete').forEach(element => {
+        element.classList.toggle('is-visible');
+      });
     });
+
+    list.addEventListener('click', e => {
+      const target = e.target;
+
+      if (target.closest('.del-icon')) {
+        target.closest('.contact').remove();
+      }
+    });
+
+    // setTimeout(() => {
+    //   const contact = createRow({
+    //     name: 'Ивфван',
+    //     surname: 'Кекук',
+    //     phone: '+79516245454',
+    //   });
+
+    //   list.append(contact);
+    // }, 1000);
   };
 
   window.phoneBookInit = init;
