@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable object-curly-spacing */
 'use strict';
 
@@ -166,22 +167,35 @@ const data = [
 
   const createRow = ({ name: firstName, surname, phone }) => {
     const tr = document.createElement('tr');
+
+    // TODO:
+    // Добавить в каждую строку кнопку редактировать (на кнопке текст или иконка на ваше усмотрение)
+    const tdEdit = document.createElement('td');
+    const buttonEdit = document.createElement('button');
+    buttonEdit.classList.add('edit-icon');
+    buttonEdit.textContent = 'Редактировать';
+    buttonEdit.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M11.293 1.293a1 1 0 0 1 1.414 1.414L3.586 12H2v-1.586l9.707-9.707a1 1 0 0 1 1.414 0z" /><path fill-rule="evenodd" d="M12.293.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1-.39.242l-3 1a1 1 0 0 1-1.266-1.267l1-3a1 1 0 0 1 .242-.39l10-10z" /></svg> Редактировать';
+    tdEdit.appendChild(buttonEdit);
+
     const tdDel = document.createElement('td');
     tdDel.classList.add('delete');
     const buttonDel = document.createElement('button');
     buttonDel.classList.add('del-icon');
     tdDel.append(buttonDel);
+
     const tdName = document.createElement('td');
     tdName.textContent = firstName;
     const tdSurname = document.createElement('td');
     tdSurname.textContent = surname;
+
     const tdPhone = document.createElement('td');
     const phoneLink = document.createElement('a');
     phoneLink.href = `tel:${phone}`;
     phoneLink.textContent = phone;
     tr.phoneLink = phoneLink;
     tdPhone.append(phoneLink);
-    tr.append(tdDel, tdName, tdSurname, tdPhone);
+
+    tr.append(tdDel, tdName, tdSurname, tdPhone, tdEdit);
 
     return tr;
   };
