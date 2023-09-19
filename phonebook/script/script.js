@@ -192,7 +192,7 @@ const data = [
     const main = createMain();
     const buttonGroup = createButtonsGroup([
       {
-        className: 'btn btn-primary mr-4',
+        className: 'btn btn-primary mr-4 js-add',
         type: 'button',
         text: 'Добавить',
       },
@@ -215,6 +215,7 @@ const data = [
       logo,
       btnAdd: buttonGroup.btns[0],
       formOverlay: form.overlay,
+      form: form.form,
     };
   };
 
@@ -241,19 +242,24 @@ const data = [
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
 
-    const { list, logo, btnAdd, formOverlay } = phoneBook;
+    const { list, logo, btnAdd, formOverlay, form } = phoneBook;
 
     // Функионал
     const allRows = renderContacts(list, data);
     hoverRow(allRows, logo);
 
-    const objEvent = {
-      handleEvent() {
-        formOverlay.classList.add('is-visible');
-      },
-    };
+    btnAdd.addEventListener('click', () => {
+      formOverlay.classList.add('is-visible');
+    });
 
-    btnAdd.addEventListener('click', objEvent);
+    form.addEventListener('click', event => {
+      // Прерывание всплытия
+      event.stopPropagation();
+    });
+
+    formOverlay.addEventListener('click', () => {
+      formOverlay.classList.remove('is-visible');
+    });
   };
 
   window.phoneBookInit = init;
