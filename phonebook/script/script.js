@@ -13,7 +13,10 @@
   };
 
   const removeStorage = (phoneNumber, key) => {
-    const updatedData = getStorage(key).filter(contact => contact.phone !== phoneNumber);
+    const existingData = getStorage(key);
+
+    const updatedData = existingData.filter(contact => contact.phone.toString() !== phoneNumber.toString());
+
     setStorage(key, updatedData);
   };
 
@@ -193,6 +196,7 @@
 
     const tdPhone = document.createElement('td');
     const phoneLink = document.createElement('a');
+    phoneLink.classList.add('phoneLink');
     phoneLink.href = `tel:${phone}`;
     phoneLink.textContent = phone;
     tr.phoneLink = phoneLink;
@@ -239,15 +243,6 @@
     };
   };
 
-  const renderContacts = (elem, data) => {
-    elem.innerHTML = '';
-
-    const allRows = data.map(createRow);
-    elem.append(...allRows);
-
-    return allRows;
-  };
-
   const hoverRow = (data, logo) => {
     const text = logo.textContent;
 
@@ -288,6 +283,27 @@
     };
   };
 
+  const renderContacts = (elem, data) => {
+    elem.innerHTML = '';
+
+    const { sortOrder, sortField } = getSortData();
+
+    const sortedData = [...data];
+
+    if (sortField) {
+      if (sortOrder === 'asc') {
+        sortedData.sort((a, b) => a[sortField].localeCompare(b[sortField]));
+      } else {
+        sortedData.sort((a, b) => b[sortField].localeCompare(a[sortField]));
+      }
+    }
+
+    const allRows = sortedData.map(createRow);
+    elem.append(...allRows);
+
+    return allRows;
+  };
+
   const updateTable = (list, data) => {
     list.innerHTML = '';
     renderContacts(list, data);
@@ -309,15 +325,12 @@
       data.sort((a, b) => b[field].localeCompare(a[field]));
     }
 
-    updateTable(list, data);
-
     setStorage('sortField', field);
     setStorage('sortOrder', currentSortOrder);
+    updateTable(list, data);
   };
 
   const sortControl = (list, data, thead) => {
-    // const { sortField } = getSortData();
-
     thead.style.cursor = 'pointer';
 
     thead.addEventListener('click', e => {
@@ -343,10 +356,9 @@
           const phoneNumber = phoneLink ? phoneLink.textContent : null;
 
           if (phoneNumber) {
-            removeStorage(phoneNumber, 'contacts');
+            element.classList.toggle('is-visible');
+            // btnDel.textContent = 'Отменить';
           }
-
-          element.classList.toggle('is-visible');
         }
       });
     });
@@ -392,7 +404,6 @@
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
     const data = getStorage('contacts');
-    // const { sortField } = getSortData();
 
     const {
       list,
@@ -404,14 +415,14 @@
       form,
     } = renderPhoneBook(app, title);
 
-    const allRows = renderContacts(list, data);
     const { closeModal } = modalControl(btnAdd, formOverlay);
-
-    hoverRow(allRows, logo);
 
     sortControl(list, data, thead);
     deleteControl(btnDel, list);
     formControl(form, list, data, closeModal);
+
+    const allRows = renderContacts(list, data);
+    hoverRow(allRows, logo);
   };
 
   window.phoneBookInit = init;
