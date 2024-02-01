@@ -130,3 +130,11 @@ body {
   color: #fff;
   text-align: center;
 }
+
+.sort-asc:after {
+  content: ' ▲';
+}
+
+.sort-desc:after {
+  content: ' ▼';
+}

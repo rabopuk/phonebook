@@ -2,32 +2,30 @@
 /* eslint-disable object-curly-spacing */
 'use strict';
 
-const data = [
-  {
-    name: 'Иван',
-    surname: 'Петров',
-    phone: '+79514545454',
-  },
-  {
-    name: 'Игорь',
-    surname: 'Семёнов',
-    phone: '+79999999999',
-  },
-  {
-    name: 'Семён',
-    surname: 'Иванов',
-    phone: '+79800252525',
-  },
-  {
-    name: 'Мария',
-    surname: 'Попова',
-    phone: '+79876543210',
-  },
-];
-
 {
-  const addContactData = contact => {
+  const getStorage = key => {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  };
+
+  const setStorage = (key, obj) => {
+    localStorage.setItem(key, JSON.stringify(obj));
+  };
+
+  const removeStorage = (phoneNumber, key) => {
+    const updatedData = getStorage(key).filter(contact => contact.phone !== phoneNumber);
+    setStorage(key, updatedData);
+  };
+
+  const getSortData = () => ({
+    sortOrder: getStorage('sortOrder') || 'asc',
+    sortField: getStorage('sortField') || null,
+  });
+
+  const addContactData = (contact, key) => {
+    const data = getStorage(key);
     data.push(contact);
+    setStorage(key, data);
     console.log('data: ', data);
   };
 
@@ -175,7 +173,6 @@ const data = [
     const tr = document.createElement('tr');
     tr.classList.add('contact');
 
-    // Добавить в каждую строку кнопку редактировать (на кнопке текст или иконка на ваше усмотрение)
     const tdEdit = document.createElement('td');
     const buttonEdit = document.createElement('button');
     buttonEdit.classList.add('btn', 'btn-primary');
@@ -202,6 +199,7 @@ const data = [
     tdPhone.append(phoneLink);
 
     tr.append(tdDel, tdName, tdSurname, tdPhone, tdEdit);
+    tr.contactData = { name: firstName, surname, phone };
 
     return tr;
   };
@@ -242,21 +240,28 @@ const data = [
   };
 
   const renderContacts = (elem, data) => {
+    elem.innerHTML = '';
+
     const allRows = data.map(createRow);
     elem.append(...allRows);
+
     return allRows;
   };
 
-  const hoverRow = (contacts, logo) => {
+  const hoverRow = (data, logo) => {
     const text = logo.textContent;
 
-    contacts.forEach(contact => {
-      contact.addEventListener('mouseenter', () => {
-        logo.textContent = contact.phoneLink.textContent;
-      });
-      contact.addEventListener('mouseleave', () => {
-        logo.textContent = text;
-      });
+    data.forEach(contact => {
+      const phoneLink = contact.querySelector('.phoneLink');
+
+      if (phoneLink) {
+        contact.addEventListener('mouseenter', () => {
+          logo.textContent = contact.contactData.phone;
+        });
+        contact.addEventListener('mouseleave', () => {
+          logo.textContent = text;
+        });
+      }
     });
   };
 
@@ -283,54 +288,66 @@ const data = [
     };
   };
 
-  // Функция для обновления таблицы с учетом отсортированных данных
   const updateTable = (list, data) => {
-    // Очистить текущие строки таблицы
     list.innerHTML = '';
-    // Перерисовать таблицу с отсортированными данными
     renderContacts(list, data);
   };
 
+  const toggleSortOrder = (field) => {
+    const { sortOrder, sortField } = getSortData();
+    const newSortOrder = sortField === field ? (sortOrder === 'asc' ? 'desc' : 'asc') : 'asc';
+    setStorage('sortOrder', newSortOrder);
+    return newSortOrder;
+  };
+
+  const applySorting = (list, data, field) => {
+    const currentSortOrder = toggleSortOrder(field);
+
+    if (currentSortOrder === 'asc') {
+      data.sort((a, b) => a[field].localeCompare(b[field]));
+    } else {
+      data.sort((a, b) => b[field].localeCompare(a[field]));
+    }
+
+    updateTable(list, data);
+
+    setStorage('sortField', field);
+    setStorage('sortOrder', currentSortOrder);
+  };
+
   const sortControl = (list, data, thead) => {
-    // Переменная для отслеживания текущего порядка сортировки
-    let sortOrder = 'asc';
+    // const { sortField } = getSortData();
+
+    thead.style.cursor = 'pointer';
 
     thead.addEventListener('click', e => {
       const target = e.target;
 
       if (target.closest('.th-name')) {
-        // Клик на заголовок Имя
-        if (sortOrder === 'asc') {
-          // Сортировка по возрастанию
-          data.sort((a, b) => a.name.localeCompare(b.name));
-          sortOrder = 'desc'; // порядок сортировки на убывание
-        } else {
-          // Сортировка по убыванию
-          data.sort((a, b) => b.name.localeCompare(a.name));
-          sortOrder = 'asc'; // порядок сортировки на возрастание
-        }
+        applySorting(list, data, 'name');
       }
 
       if (target.closest('.th-surname')) {
-        // Клик на заголовок Фамилия
-        if (sortOrder === 'asc') {
-          data.sort((a, b) => a.surname.localeCompare(b.surname));
-          sortOrder = 'desc';
-        } else {
-          data.sort((a, b) => b.surname.localeCompare(a.surname));
-          sortOrder = 'asc';
-        }
+        applySorting(list, data, 'surname');
       }
-
-      // Обновить таблицу с учетом отсортированных данных
-      updateTable(list, data);
     });
   };
 
   const deleteControl = (btnDel, list) => {
     btnDel.addEventListener('click', () => {
       document.querySelectorAll('.delete').forEach(element => {
-        element.classList.toggle('is-visible');
+        const contact = element.closest('.contact');
+
+        if (contact) {
+          const phoneLink = contact.querySelector('.phoneLink');
+          const phoneNumber = phoneLink ? phoneLink.textContent : null;
+
+          if (phoneNumber) {
+            removeStorage(phoneNumber, 'contacts');
+          }
+
+          element.classList.toggle('is-visible');
+        }
       });
     });
 
@@ -338,7 +355,17 @@ const data = [
       const target = e.target;
 
       if (target.closest('.del-icon')) {
-        target.closest('.contact').remove();
+        const contact = target.closest('.contact');
+
+        if (contact) {
+          const phoneLink = contact.querySelector('.phoneLink');
+          const phoneNumber = phoneLink ? phoneLink.textContent : null;
+
+          if (phoneNumber) {
+            removeStorage(phoneNumber, 'contacts');
+          }
+          contact.remove();
+        }
       }
     });
   };
@@ -347,7 +374,7 @@ const data = [
     list.append(createRow(contact));
   };
 
-  const formControl = (form, list, closeModal) => {
+  const formControl = (form, list, data, closeModal) => {
     form.addEventListener('submit', e => {
       e.preventDefault();
 
@@ -355,7 +382,7 @@ const data = [
       const newContact = Object.fromEntries(formData);
       console.log('newContact: ', newContact);
 
-      addContactData(newContact);
+      addContactData(newContact, 'contacts');
       addContactPage(newContact, list);
       form.reset();
       closeModal();
@@ -364,6 +391,8 @@ const data = [
 
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
+    const data = getStorage('contacts');
+    // const { sortField } = getSortData();
 
     const {
       list,
@@ -375,16 +404,15 @@ const data = [
       form,
     } = renderPhoneBook(app, title);
 
-    // Функционал
     const allRows = renderContacts(list, data);
     const { closeModal } = modalControl(btnAdd, formOverlay);
 
     hoverRow(allRows, logo);
+
     sortControl(list, data, thead);
     deleteControl(btnDel, list);
-    formControl(form, list, closeModal);
+    formControl(form, list, data, closeModal);
   };
 
   window.phoneBookInit = init;
 }
-
