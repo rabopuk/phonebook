@@ -3,14 +3,9 @@
 'use strict';
 
 {
-  const getStorage = key => {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : [];
-  };
+  const getStorage = key => JSON.parse(localStorage.getItem(key)) ?? [];
 
-  const setStorage = (key, obj) => {
-    localStorage.setItem(key, JSON.stringify(obj));
-  };
+  const setStorage = (key, obj) => localStorage.setItem(key, JSON.stringify(obj));
 
   const removeStorage = (phoneNumber, key) => {
     const existingData = getStorage(key);
@@ -347,7 +342,17 @@
   };
 
   const deleteControl = (btnDel, list) => {
+    let isDeleteMode = false;
+
+    const toggleDeleteMode = () => {
+      isDeleteMode = !isDeleteMode;
+      const buttonText = isDeleteMode ? 'Отменить' : 'Удалить';
+      btnDel.textContent = buttonText;
+    };
+
     btnDel.addEventListener('click', () => {
+      toggleDeleteMode();
+
       document.querySelectorAll('.delete').forEach(element => {
         const contact = element.closest('.contact');
 
@@ -356,8 +361,7 @@
           const phoneNumber = phoneLink ? phoneLink.textContent : null;
 
           if (phoneNumber) {
-            element.classList.toggle('is-visible');
-            // btnDel.textContent = 'Отменить';
+            element.classList.toggle('is-visible', isDeleteMode);
           }
         }
       });
