@@ -3,6 +3,11 @@
 'use strict';
 
 {
+  const ASC = 'asc';
+  const DESC = 'desc';
+  const DELETE = 'Удалить';
+  const CANCEL = 'Отменить';
+
   const getStorage = key => JSON.parse(localStorage.getItem(key)) ?? [];
 
   const setStorage = (key, obj) => localStorage.setItem(key, JSON.stringify(obj));
@@ -16,7 +21,7 @@
   };
 
   const getSortData = () => ({
-    sortOrder: getStorage('sortOrder') || 'asc',
+    sortOrder: getStorage('sortOrder') || ASC,
     sortField: getStorage('sortField') || null,
   });
 
@@ -286,7 +291,7 @@
     const sortedData = [...data];
 
     if (sortField) {
-      if (sortOrder === 'asc') {
+      if (sortOrder === ASC) {
         sortedData.sort((a, b) => a[sortField].localeCompare(b[sortField]));
       } else {
         sortedData.sort((a, b) => b[sortField].localeCompare(a[sortField]));
@@ -306,7 +311,13 @@
 
   const toggleSortOrder = (field) => {
     const { sortOrder, sortField } = getSortData();
-    const newSortOrder = sortField === field ? (sortOrder === 'asc' ? 'desc' : 'asc') : 'asc';
+
+    if (sortField !== field) {
+      setStorage('sortOrder', ASC);
+      return ASC;
+    }
+
+    const newSortOrder = sortOrder === ASC ? DESC : ASC;
     setStorage('sortOrder', newSortOrder);
     return newSortOrder;
   };
@@ -314,7 +325,7 @@
   const applySorting = (list, data, field) => {
     const currentSortOrder = toggleSortOrder(field);
 
-    if (currentSortOrder === 'asc') {
+    if (currentSortOrder === ASC) {
       data.sort((a, b) => a[field].localeCompare(b[field]));
     } else {
       data.sort((a, b) => b[field].localeCompare(a[field]));
@@ -328,17 +339,30 @@
   const sortControl = (list, data, thead) => {
     thead.style.cursor = 'pointer';
 
+    const sortKeys = {
+      '.th-name': 'name',
+      '.th-surname': 'surname',
+    };
+
     thead.addEventListener('click', e => {
       const target = e.target;
 
-      if (target.closest('.th-name')) {
-        applySorting(list, data, 'name');
-      }
-
-      if (target.closest('.th-surname')) {
-        applySorting(list, data, 'surname');
+      for (const key in sortKeys) {
+        if (target.closest(key)) {
+          if (typeof applySorting === 'function') {
+            applySorting(list, data, sortKeys[key]);
+          } else {
+            console.error('applySorting is not a function');
+          }
+          break;
+        }
       }
     });
+  };
+
+  const getPhoneNumberFromContact = (contact) => {
+    const phoneLink = contact.querySelector('.phoneLink');
+    return phoneLink ? phoneLink.textContent : null;
   };
 
   const deleteControl = (btnDel, list) => {
@@ -346,7 +370,7 @@
 
     const toggleDeleteMode = () => {
       isDeleteMode = !isDeleteMode;
-      const buttonText = isDeleteMode ? 'Отменить' : 'Удалить';
+      const buttonText = isDeleteMode ? CANCEL : DELETE;
       btnDel.textContent = buttonText;
     };
 
@@ -357,8 +381,7 @@
         const contact = element.closest('.contact');
 
         if (contact) {
-          const phoneLink = contact.querySelector('.phoneLink');
-          const phoneNumber = phoneLink ? phoneLink.textContent : null;
+          const phoneNumber = getPhoneNumberFromContact(contact);
 
           if (phoneNumber) {
             element.classList.toggle('is-visible', isDeleteMode);
@@ -374,8 +397,7 @@
         const contact = target.closest('.contact');
 
         if (contact) {
-          const phoneLink = contact.querySelector('.phoneLink');
-          const phoneNumber = phoneLink ? phoneLink.textContent : null;
+          const phoneNumber = getPhoneNumberFromContact(contact);
 
           if (phoneNumber) {
             removeStorage(phoneNumber, 'contacts');
