@@ -27,9 +27,8 @@
 
   const addContactData = (contact, key) => {
     const data = getStorage(key);
-    data.push(contact);
-    setStorage(key, data);
-    console.log('data: ', data);
+    const updatedData = [...data, contact];
+    setStorage(key, updatedData);
   };
 
   const createContainer = () => {
@@ -250,12 +249,8 @@
       const phoneLink = contact.querySelector('.phoneLink');
 
       if (phoneLink) {
-        contact.addEventListener('mouseenter', () => {
-          logo.textContent = contact.contactData.phone;
-        });
-        contact.addEventListener('mouseleave', () => {
-          logo.textContent = text;
-        });
+        contact.onmouseover = () => logo.textContent = contact.contactData.phone;
+        contact.onmouseout = () => logo.textContent = text;
       }
     });
   };
@@ -291,11 +286,9 @@
     const sortedData = [...data];
 
     if (sortField) {
-      if (sortOrder === ASC) {
-        sortedData.sort((a, b) => a[sortField].localeCompare(b[sortField]));
-      } else {
-        sortedData.sort((a, b) => b[sortField].localeCompare(a[sortField]));
-      }
+      sortedData.sort((a, b) => (sortOrder === ASC ?
+        a[sortField].localeCompare(b[sortField]) :
+        b[sortField].localeCompare(a[sortField])));
     }
 
     const allRows = sortedData.map(createRow);
@@ -412,7 +405,7 @@
     list.append(createRow(contact));
   };
 
-  const formControl = (form, list, data, closeModal) => {
+  const formControl = (form, list, closeModal) => {
     form.addEventListener('submit', e => {
       e.preventDefault();
 
@@ -445,7 +438,7 @@
 
     sortControl(list, data, thead);
     deleteControl(btnDel, list);
-    formControl(form, list, data, closeModal);
+    formControl(form, list, closeModal);
 
     const allRows = renderContacts(list, data);
     hoverRow(allRows, logo);
