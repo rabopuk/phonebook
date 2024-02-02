@@ -44,11 +44,14 @@ export const renderContacts = (elem, data) => {
 
   const sortedData = [...data];
 
-  if (sortField) {
-    sortedData.sort((a, b) => (sortOrder === ASC ?
+  sortedData.sort((a, b) => {
+    if (a[sortField] === undefined || b[sortField] === undefined) {
+      return 0;
+    }
+    return sortOrder === ASC ?
       a[sortField].localeCompare(b[sortField]) :
-      b[sortField].localeCompare(a[sortField])));
-  }
+      b[sortField].localeCompare(a[sortField]);
+  });
 
   const allRows = sortedData.map(c.createRow);
   elem.append(...allRows);
