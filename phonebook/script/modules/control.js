@@ -49,8 +49,9 @@ export const toggleSortOrder = (field) => {
   return newSortOrder;
 };
 
-export const applySorting = (list, data, field) => {
+export const applySorting = (list, field) => {
   const currentSortOrder = toggleSortOrder(field);
+  const data = getStorage('contacts');
 
   if (currentSortOrder === ASC) {
     data.sort((a, b) => a[field].localeCompare(b[field]));
@@ -76,11 +77,7 @@ export const sortControl = (list, data, thead) => {
 
     for (const key in sortKeys) {
       if (target.closest(key)) {
-        if (typeof applySorting === 'function') {
-          applySorting(list, data, sortKeys[key]);
-        } else {
-          console.error('applySorting is not a function');
-        }
+        applySorting(list, sortKeys[key]);
         break;
       }
     }
@@ -126,6 +123,10 @@ export const deleteControl = (btnDel, list) => {
     isDeleteMode = !isDeleteMode;
     const buttonText = isDeleteMode ? CANCEL : DELETE;
     btnDel.textContent = buttonText;
+
+    if (!isDeleteMode) {
+      updateTable(list, getStorage('contacts'));
+    }
   };
 
   btnDel.addEventListener('click', () => {
